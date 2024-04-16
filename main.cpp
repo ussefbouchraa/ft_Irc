@@ -6,7 +6,7 @@
 /*   By: ybouchra <ybouchra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/13 17:21:33 by ybouchra          #+#    #+#             */
-/*   Updated: 2024/04/13 19:42:57 by ybouchra         ###   ########.fr       */
+/*   Updated: 2024/04/15 05:20:47 by ybouchra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 #include <sstream>
 #include <cstring>
 #include <algorithm>
+#include <arpa/inet.h>
+#include <sys/socket.h>
 
 int _stoi(std::string str)
 {

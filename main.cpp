@@ -6,7 +6,7 @@
 /*   By: ybouchra <ybouchra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/13 17:21:33 by ybouchra          #+#    #+#             */
-/*   Updated: 2024/04/20 04:58:28 by ybouchra         ###   ########.fr       */
+/*   Updated: 2024/04/20 11:37:48 by ybouchra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,24 +29,20 @@ int _stoi(std::string str)
 }
 int is_digits(std::string str)
 {
-    int i = 0;
-    if(str[0] == '+' || str[0] == '-')
-        i++;
-    while (str[i])
+    int i = -1;
+    while (str[++i])
     {
         if(!std::isdigit(str[i]))
             return(0);
-        i++;
     }
     return(1);
 }
-bool Valid_Args(std::string port, std::string password)
+bool Valid_Args(std::string port, std::string ip)
 {
-    if (port.empty() || password.empty()  ||!is_digits(port))
+    if (port.empty() || ip.empty()  ||!is_digits(port) )
         return(0);
-    int p = _stoi(port);
-    std::cout << p << std::endl;
-    if ( p < 1025 || p > 65535)
+    int _port = _stoi(port); 
+    if ( _port < 1025 || _port > 65535)
         return(0);
     return(1);
 }
@@ -54,10 +50,7 @@ int main(int ac, char **av)
 {
     if(ac != 3)
         return(std::cerr << "Error: Syntax_Err\n", 1);
-    std::string port, password;
-    port = av[1];
-    password = av[2];
-    if (!Valid_Args(port, password))
+    if (!Valid_Args(av[1], av[2]))
        return(std::cerr << "Invalid_Args\n", 1);
 
         std::cout << "Valid_args\n";

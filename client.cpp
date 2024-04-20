@@ -6,21 +6,48 @@
 /*   By: ybouchra <ybouchra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 06:41:03 by ybouchra          #+#    #+#             */
-/*   Updated: 2024/04/20 11:15:14 by ybouchra         ###   ########.fr       */
+/*   Updated: 2024/04/20 12:00:09 by ybouchra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "client.hpp"
 
-#include <iostream>
-#include <cstring>
-#include <cstdlib>  
-#include <netinet/in.h> 
-#include <arpa/inet.h>
-#include <sys/socket.h> 
-#include <unistd.h> 
-
-int main()
+int _stoi(std::string str)
 {
+    std::istringstream iss(str);
+    int res;
+    iss >> res;
+    if(iss.eof() && !iss.bad())
+        return(res);
+    return(-1);
+        
+}
+int is_digits(std::string str)
+{
+    int i = -1;
+    while (str[++i])
+    {
+        if(!std::isdigit(str[i]))
+            return(0);
+    }
+    return(1);
+}
+bool Valid_Args(std::string ip, std::string port)
+{
+    if (port.empty() || ip.empty()  ||!is_digits(port) )
+        return(0);
+    int _port = _stoi(port); 
+    if ( _port < 1025 || _port > 65535)
+        return(0);
+    return(1);
+}
+
+int main(int ac, char **av)
+    {
+    if(ac != 3)
+        return(std::cerr << "Error: Syntax_Err\n", 1);
+    if (!Valid_Args(av[1], av[2]))
+        return(std::cerr << "Invalid_Args\n", 1);
         
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
     if(clientSocket == -1)
@@ -28,8 +55,8 @@ int main()
         
     sockaddr_in serverAddress; 
     serverAddress.sin_family = AF_INET; 
-    serverAddress.sin_port = htons(99999); 
-    serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
+    serverAddress.sin_port = htons(_stoi(av[2])); 
+    serverAddress.sin_addr.s_addr = inet_addr(av[1]);
 
     if(connect(clientSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1)
         return(std::cerr << "Error connecting to server\n", close(clientSocket), 1);

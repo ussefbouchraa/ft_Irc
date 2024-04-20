@@ -6,7 +6,7 @@
 /*   By: ybouchra <ybouchra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/13 17:21:33 by ybouchra          #+#    #+#             */
-/*   Updated: 2024/04/15 05:20:47 by ybouchra         ###   ########.fr       */
+/*   Updated: 2024/04/20 04:58:28 by ybouchra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ bool Valid_Args(std::string port, std::string password)
         return(0);
     int p = _stoi(port);
     std::cout << p << std::endl;
-    if ( p < 0 || p > 65535)
+    if ( p < 1025 || p > 65535)
         return(0);
     return(1);
 }

@@ -6,77 +6,88 @@
 /*   By: ybouchra <ybouchra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 06:41:42 by ybouchra          #+#    #+#             */
-/*   Updated: 2024/04/20 11:58:32 by ybouchra         ###   ########.fr       */
+/*   Updated: 2024/05/01 18:55:48 by ybouchra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #include "server.hpp"
 
-int _stoi(std::string str)
-{
-    std::istringstream iss(str);
-    int res;
-    iss >> res;
-    if(iss.eof() && !iss.bad())
-        return(res);
-    return(-1);
-        
-}
-int is_digits(std::string str)
-{
-    int i = -1;
-    while (str[++i])
-    {
-        if(!std::isdigit(str[i]))
-            return(0);
+Server::Server(){};
+Server::Server(std::string port, std::string password){
+
+
+    if (!Valid_Args(port, password)){
+        std::cerr << "ERROR: Invalid Input" << std::endl;
+        exit(EXIT_FAILURE);
     }
-    return(1);
-}
-bool Valid_Args(std::string ip, std::string port)
+    this->_port = _stoi(port);
+    this->_password = password;
+    
+};
+Server::Server(const Server &src)
 {
-    if (port.empty() || ip.empty()  ||!is_digits(port) )
-        return(0);
-    int _port = _stoi(port); 
-    if ( _port < 1025 || _port > 65535)
-        return(0);
-    return(1);
+    *this = src;
 }
-int main(int ac, char **av)
+Server& Server::operator=(const Server &src)
 {
-    if(ac != 3)
-        return(std::cerr << "Error: Syntax_Err\n", 1);
-    if (!Valid_Args(av[1], av[2]))
-        return(std::cerr << "Invalid_Args\n", 1);
- 
-    std::cout << "Server Start Loading..." << std::endl;
+        if (this != &src)
+    {
+        this->_port = src._port;
+        this->_password = src._password;
+        this->_fds = src._fds;
+        // this->_clients = src._clients;
+        // this->_channels = src._channels;
+    }
+    return *this;
+}
+Server::~Server()
+{
+    this->_password.clear();
+    this->_fds.clear();
+    // this->_clients.clear();
+    // this->_channels.clear();
+}
+
+void Server::startServer()
+{
     int srv_fd = socket(AF_INET,SOCK_STREAM,0 );
     if(srv_fd == -1)
-       return(std::cerr << "Socket creation failed:" << strerror(errno) << std::endl, 1);
+    {
+        std::cerr << "Socket creation failed:" << strerror(errno) << std::endl;
+        exit(EXIT_FAILURE);
+    }
     
     sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(_stoi(av[2]));
-    serverAddress.sin_addr.s_addr = INADDR_ANY;
+    serverAddress.sin_port = this->_port;
+    serverAddress.sin_addr.s_addr = INADDR_ANY;//  inet_addr(av[1])
     
-    if(bind(srv_fd, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) == -1)
-         return(std::cerr << "Bind failed: " << strerror(errno) << std::endl, close(srv_fd), 1);
-    if(listen(srv_fd, 5) == -1)
-        return( std::cerr << "Listen failed: " << strerror(errno) << std::endl, close(srv_fd), 1);
+    if(bind(srv_fd, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) == -1){
+        std::cerr << "Bind failed: " << strerror(errno) << std::endl, close(srv_fd);
+        exit(EXIT_FAILURE);
+        }
+
+    if(listen(srv_fd, SOMAXCONN) == -1){
+        std::cerr << "Listen failed: " << strerror(errno) << std::endl, close(srv_fd);
+        exit(EXIT_FAILURE);
+     }
     
-    std::vector<pollfd> fds(1);
-    fds[0].fd = srv_fd;
-    fds[0].events = POLLIN;
+    this->_fds.push_back((pollfd){srv_fd, POLLIN, 0});
+    // this->_fds.resize(1);
+    // this->_fds[0].fd = srv_fd;
+    // this->_fds[0].events = POLLIN;
     
+    std::cout << "Server Start Loading..." << std::endl;
     while(true)
     {
-        int ret = poll(fds.data(), fds.size(), -1);
+        int ret = poll(_fds.data(), _fds.size(), -1);
         if(ret == -1)
         {
              std::cerr << "Poll failed: " << strerror(errno) << std::endl;
             break;
         }
-        if(fds[0].revents & POLLIN)
+        if(this->_fds[0].revents & POLLIN)
         {
             int newSocket = accept(srv_fd, NULL, NULL);
             if(newSocket == -1)
@@ -85,15 +96,18 @@ int main(int ac, char **av)
                 continue;
             }
             else
-                fds.push_back((pollfd){newSocket, POLLIN});
+            {
+                this->_fds.push_back((pollfd){newSocket, POLLIN, 0});
+                std::cout << "New client connected" << std::endl;
+            }
                 
         }
-        for(size_t i = 1; i < fds.size(); i++)
+        for(size_t i = 1; i < this->_fds.size(); i++)
         {
-            if(fds[i].revents & POLLIN)
+            if(this->_fds[i].revents & POLLIN)
             {
                 char buffer[1024];
-                int rcv_byt = recv(fds[i].fd, buffer, sizeof(buffer), 0);
+                int rcv_byt = recv(this->_fds[i].fd, buffer, sizeof(buffer), 0);
                 if(rcv_byt > 0)
                 {
                     std::cout <<  "Message from client: " << buffer << std::endl;
@@ -102,8 +116,8 @@ int main(int ac, char **av)
                 else if(rcv_byt == 0)
                 {
                     std::cerr << "Client disconnected" << std::endl;
-                    fds.erase(fds.begin() + i--);
-                    close(fds[i].fd);
+                    this->_fds.erase(this->_fds.begin() + i--);
+                    close(this->_fds[i].fd);
                 }
                 else
                  std::cerr << "recieving failed: " << strerror(errno) << std::endl;
@@ -115,3 +129,6 @@ int main(int ac, char **av)
         close(srv_fd);
 
 }
+    
+
+

@@ -1,21 +1,53 @@
-NAME = ft_irc
-CC =  c++ -Wall -Wextra -Werror -std=c++98
-RM = rm -rf
-FILE = main.cpp server.cpp utils.cpp
-OBJ = $(FILE:.cpp=.o)
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    Makefile                                           :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: ybouchra <ybouchra@student.42.fr>          +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/04/07 01:27:20 by ebelfkih          #+#    #+#              #
+#    Updated: 2024/05/05 18:56:25 by ybouchra         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
 
-all : $(NAME)
+NAME			= ircserv
 
-$(NAME) : $(OBJ)
-	$(CC) $(OBJ) -o $@
+SRC				= main.cpp					\
+				utils/helpers.cpp			\
+				utils/errors.cpp			\
+				classes/Server.cpp			\
+				classes/Client.cpp			\
+				classes/Message.cpp			\
+				classes/Channel.cpp			\
+				classes/Command.cpp			\
+					
+DIR_SRC		= src/
+DIR_OBJ		= obj/
+DIR_INC		= inc/
+OBJ			= ${SRC:%.cpp=${DIR_OBJ}%.o}
+CXX			= c++
+DEP			= ${OBJ:%.o=%.d}
+CPPFLAGS	= -Wall -Wextra -Werror -MMD -g3 -D_GLIBCXX_DEBUG -std=c++98 -c -I ${DIR_INC} 
+RM 			= rm -f
+RMDIR		= rm -rf
 
-%.o : %.cpp server.hpp
-	$(CC) -c $< -o $@ 
+all: ${NAME}
 
-clean :
-	$(RM) $(OBJ)
+${NAME} : ${OBJ}
+	${CXX} $^ -o $@
 
-fclean : clean
-	$(RM) $(NAME)
+${OBJ} : ${DIR_OBJ}%.o: ${DIR_SRC}%.cpp
+	mkdir -p ${@D}
+	${CXX} ${CPPFLAGS} $< -o $@
 
-re : fclean all	
+-include ${DEP}
+
+clean:
+	${RMDIR} ${DIR_OBJ}
+
+fclean: clean
+	${RM} ${NAME}
+
+re: fclean all
+
+.PHONY: all clean fclean re

@@ -1,31 +1,34 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   te.cpp                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ybouchra <ybouchra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/13 17:21:33 by ybouchra          #+#    #+#             */
-/*   Updated: 2024/05/02 18:11:11 by ybouchra         ###   ########.fr       */
+/*   Created: 2024/05/07 01:00:36 by ybouchra          #+#    #+#             */
+/*   Updated: 2024/05/07 01:17:59 by ybouchra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
-#include <sstream>
-#include <cstring>
-#include <algorithm>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include "server.hpp"
+#include "iostream"
+#include <vector>
 
- int main(int ac, char **av)
- {
-    std::cout << "\033[31m" << std::endl; 
-    if(ac != 3)
-        return(std::cerr << "Error : Syntax_Err" << std::endl, 1);
-    else
-    {
-        Server srv(av[1], av[2]);
-	    srv.startServer();
-    }
- }
+int main()
+{
+    std::string msg = "join";
+std::vector<std::string> vec;
+	vec.push_back("QUIT");
+	vec.push_back("join");
+std::vector<std::string>::iterator it = vec.begin();
+    
+	it = std::find(it, vec.end(), msg);
+	if(it != vec.end())
+		std::cout << "******" <<  *it << std::endl;
+	else 
+	{
+		std::cout << "NOT FOUND\n";
+		return(0);
+	}
+	return(1);
+    
+}

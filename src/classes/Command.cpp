@@ -6,17 +6,18 @@
 /*   By: ybouchra <ybouchra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/07 01:00:44 by ybouchra          #+#    #+#             */
-/*   Updated: 2024/05/09 07:45:36 by ybouchra         ###   ########.fr       */
+/*   Updated: 2024/05/10 09:09:41 by ybouchra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #include "../../inc/Command.hpp"
 
-Command::Command(Client client)
+Command::Command(Client cl, std::string pwd)
 {
    this->_basicCmd_status = false;
-   this->_client = client;
+   this->_client = cl;
+   this->_pwd = pwd; 
 
 };
 Command::~Command()
@@ -36,7 +37,6 @@ std::string Command::getCommand() const
 };
 
 
-
 std::string to_uppercase(const std::string& str) {
     std::string result = str;
     for (size_t i = 0; i < result.length(); ++i) {
@@ -44,6 +44,17 @@ std::string to_uppercase(const std::string& str) {
     }
     return result;
 }
+void Command::clear()
+{
+	this->_command.clear();
+	this->_parms.clear();
+	this->_tokens.erase(_tokens.begin(), _tokens.end());
+	this->_basicCmds.erase(_basicCmds.begin(), _basicCmds.end());
+	this->_parameters.erase(_parameters.begin(), _parameters.end());
+};
+
+
+
 
 
 
@@ -72,12 +83,7 @@ bool Command::check_cmd(std::string msg)
 	std::string msg_cmd = msg.substr(0, this->_command.size());
 	if( it != _basicCmds.end() && msg_cmd == *it)
 		return(true);
-
-	else
-	{
-		this->clear();
-		return(false);
-	}
+	return(false);
 }
 bool Command::check_args()
 {
@@ -129,14 +135,7 @@ void Command::initBasicCmds()
 	 this->_basicCmd_status = true;
 };
 
-void Command::clear()
-{
-	this->_command.clear();
-	this->_parms.clear();
-	this->_tokens.erase(_tokens.begin(), _tokens.end());
-	this->_basicCmds.erase(_basicCmds.begin(), _basicCmds.end());
-	this->_parameters.erase(_parameters.begin(), _parameters.end());
-};
+
 
 int  Command:: find_pos()
 {
@@ -152,7 +151,7 @@ int  Command:: find_pos()
 }
 
 
-void Command::exec_cmd()
+Client Command::exec_cmd()
 {
 	switch (find_pos())
 	{
@@ -163,9 +162,9 @@ void Command::exec_cmd()
 	case(NICK):
 		nickCommand();
 		break;
-	// case(PASS):
-	// 	passCommand();
-	// 	break;
+	case(PASS):
+		passCommand();
+		break;
 	// case(JOIN):
 	// 	joinCommand();
 	// 	break;
@@ -193,30 +192,71 @@ void Command::exec_cmd()
 	// case(MODE):
 	// 	modeCommand();
 	// 	break;
-	case(UNKNOWN):
-		std::cerr << " Invalid_Cmd \n";
-		break;
 	
 	}
+	return(this->_client);
+
+}
+
+Client Command::getClient()const
+{
+	return this->_client;
 }
 
 
+	void Command::userCommand() {
+    if (this->_parameters.size() == 2  && !this->_parameters[0].empty() && !this->_parameters[1].empty()) {
+        std::string username = this->_parameters[0];
+        std::string ip = this->_parameters[1];
 
 
-void Command::userCommand()
-{
-	std::cout << "/USER\n";
+		this->_client.setUserName(username);
+		this->_client.setIP(ip);
+		std::cout << "USER INFO UPDATED\n";
+
+    } else
+        std::cerr << "Invalid number of parameters for USER command" << std::endl;
 }
 void Command::nickCommand()
 {
 	if(this->_parameters.size() == 1 && !this->_parameters[0].empty()){
 		std::string newNickname = this->_parameters[0];
 	this->_client.setNickName(newNickname);	
-	std::cout << "Setting new nickname to: " << newNickname << std::endl;
+	std::cout << "NICK NAME UPDATED\n";
 	}else 
 		std::cerr << "Invalid number of parameters for NICK command" << std::endl;
 }
-// void Command::joinCommand()
-// {
-	
-// }
+
+
+void Command::privmsgCommand() {
+    if (this->_parameters.size() == 2 && !this->_parameters[0].empty() && !this->_parameters[1].empty()) {
+        std::string target = this->_parameters[0];
+        std::string message = this->_parameters[1];
+
+        if (target == "#general") {
+       // if the target is a channel  send the message to all users in the channel
+        } else {
+            // Target is a user send the message to the specific user (list of connected clients)
+        }
+        std::cout << "Message sent to " << target << ": " << message << std::endl;
+    } else {
+        std::cerr << "Invalid number of parameters for PRIVMSG command" << std::endl;
+    }
+}
+
+
+void Command::passCommand() {
+    if (this->_parameters.size() == 1 && !this->_parameters[0].empty()) 
+	{
+        std::string password = this->_parameters[0];
+
+
+        if (password == this->_pwd){
+			this->_client.setAuthenticate(true);
+            std::cout << "Client " << this->_client.getNickName() << " authenticated successfully" << std::endl;
+        } else
+            std::cerr << "Incorrect password for client " << this->_client.getNickName() << std::endl;
+    }
+	 else 
+        std::cerr << "Invalid number of parameters for PASS command" << std::endl;
+}

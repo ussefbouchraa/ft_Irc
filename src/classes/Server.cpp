@@ -6,7 +6,7 @@
 /*   By: ybouchra <ybouchra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 20:17:33 by ebelfkih          #+#    #+#             */
-/*   Updated: 2024/05/09 07:46:10 by ybouchra         ###   ########.fr       */
+/*   Updated: 2024/05/10 09:09:54 by ybouchra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,25 +154,29 @@ void Server::handleClientConnection()
 
 
 
-
     
 void Server::handleClientMessage(int i)
 {
     std::string msg = this->_clients[i].getMessage().getBuffer();
-    Command Cmd(this->_clients[i]);
-    if(msg.at(0) == '/' && Cmd.is_command(msg))
+    Command Cmd(this->_clients[i], this->_passWord);
+    if(!msg.empty() && msg.at(0) == '/' && Cmd.is_command(msg))
     {
-        Cmd.exec_cmd();
-        Cmd.clear();
-        this->_clients[i].getMessage().clearBuffer(); 
+        this->_clients[i] = Cmd.exec_cmd();
+        std::cout << "NICK_CMD :" << this->_clients[i].getNickName() << std::endl;;
+        std::cout << "USER_CMD :" << this->_clients[i].getUserName()<< " " << this->_clients[i].getIP() << std::endl;
+        std::cout << "PASS_CMD :" << this->_clients[i].getAuthenticate() << std::endl;
+        
+        exit(0);
     }
     else if(this->_clients[i].getMessage().IsReady())
     {
         std::cout << this->_clients[i].getClientFdSocket() << " : " << this->_clients[i].getMessage().getBuffer();
         this->_clients[i].getMessage().clearBuffer(); 
     }
+        Cmd.clear();
+        // this->_clients[i].getMessage().clearBuffer(); 
 
-        std::cout  << " -----" << this->_clients[i].getNickName();
+
  
 }
 

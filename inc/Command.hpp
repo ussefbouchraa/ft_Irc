@@ -6,7 +6,7 @@
 /*   By: ybouchra <ybouchra@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/07 01:00:49 by ybouchra          #+#    #+#             */
-/*   Updated: 2024/05/09 07:38:39 by ybouchra         ###   ########.fr       */
+/*   Updated: 2024/05/10 09:01:09 by ybouchra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,6 @@ enum cmds{
                 TOPIC = 9,
                 INVITE = 10,
                 MODE = 11,
-                UNKNOWN = -1,
 };
 
 class Command{
@@ -48,7 +47,7 @@ class Command{
     std::vector<std::string>   _tokens;
     std::vector<std::string>    _basicCmds;
     std::vector<std::string>    _parameters;
-    
+    std::string _pwd;
     std::string _command;
     std::string _parms;
     bool _basicCmd_status;
@@ -56,9 +55,10 @@ class Command{
     
     public:
     Command();
-    Command(Client);
-    
+    Command(Client cl,std::string pwd);
     ~Command();
+    
+    Client getClient()const;
     std::string getCommand()const;
     bool getBasicCmd_status()const;
     bool is_validFormat(std::string msg);
@@ -68,15 +68,14 @@ class Command{
     bool check_cmd(std::string msg);
     bool check_args();
     int  find_pos();
-    void exec_cmd();
+    Client exec_cmd();
     void userCommand();
     void nickCommand();
-    // void joinCommand();
-    // void passCommand();
+    void passCommand();
     // void joinCommand();
     // void partCommand();
     // void kickCommand();
-    // void privmsgCommand();
+    void privmsgCommand();
     // void noticeCommand();
     // void topicCommand();
     // void inviteCommand();
